@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .float { animation: float 6s ease-in-out infinite; }
+        .pulse { animation: pulse 2s ease-in-out infinite; }
+        .slide-in { animation: slideIn 0.5s ease-out; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-500 overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div class="absolute top-1/4 left-1/4 w-20 h-20 bg-yellow-300 rounded-full opacity-50 float"></div>
+        <div class="absolute top-3/4 right-1/4 w-32 h-32 bg-pink-300 rounded-full opacity-50 float" style="animation-delay: -2s;"></div>
+        <div class="absolute bottom-1/4 left-1/2 w-24 h-24 bg-green-300 rounded-full opacity-50 float" style="animation-delay: -4s;"></div>
+    </div>
+    
+    <div class="w-full max-w-md p-8 m-4 bg-white bg-opacity-20 backdrop-filter backdrop-blur-lg rounded-lg shadow-2xl pulse">
+        <h2 class="mb-6 text-4xl font-bold text-center text-white">Register</h2>
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <div class="slide-in" style="animation-delay: 0.1s;">
+                <input type="text" name="username" placeholder="Username" required
+                    class="w-full px-4 py-3 bg-white bg-opacity-30 border-2 border-white border-opacity-50 rounded-lg focus:outline-none focus:border-opacity-100 transition duration-300 text-white placeholder-white placeholder-opacity-75">
+            </div>
+            <div class="slide-in" style="animation-delay: 0.2s;">
+                <input type="email" name="email" placeholder="Email" required
+                    class="w-full px-4 py-3 bg-white bg-opacity-30 border-2 border-white border-opacity-50 rounded-lg focus:outline-none focus:border-opacity-100 transition duration-300 text-white placeholder-white placeholder-opacity-75">
+            </div>
+            <div class="slide-in" style="animation-delay: 0.3s;">
+                <input type="password" name="password" placeholder="Password" required
+                    class="w-full px-4 py-3 bg-white bg-opacity-30 border-2 border-white border-opacity-50 rounded-lg focus:outline-none focus:border-opacity-100 transition duration-300 text-white placeholder-white placeholder-opacity-75">
+            </div>
+            <div class="slide-in" style="animation-delay: 0.4s;">
+                <input type="password" name="confirm_password" placeholder="Confirm Password" required
+                    class="w-full px-4 py-3 bg-white bg-opacity-30 border-2 border-white border-opacity-50 rounded-lg focus:outline-none focus:border-opacity-100 transition duration-300 text-white placeholder-white placeholder-opacity-75">
+            </div>
+            <button type="submit" class="slide-in w-full py-3 px-4 bg-white text-purple-600 font-semibold rounded-lg shadow-md hover:bg-opacity-90 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-75 transition duration-300 ease-in-out transform hover:scale-105" style="animation-delay: 0.5s;">
+                Register
+            </button>
+        </form>
+        <div class="mt-6 text-center slide-in" style="animation-delay: 0.6s;">
+            <a href="/login" class="text-white hover:text-purple-200 transition duration-300">Already have an account? Login</a>
+        </div>
+    </div>
+</body>
+</html>

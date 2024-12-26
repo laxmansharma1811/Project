@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <h2 class="text-3xl font-bold mb-8 text-center">Analysis</h2>
+
+        <!-- Price Differences Table -->
+        <table class="min-w-full table-auto shadow-lg rounded-lg bg-white">
+            <thead>
+                <tr class="bg-gray-100">
+                    <th class="border px-4 py-2">Comparison</th>
+                    <th class="border px-4 py-2">Price Difference (Rs.)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for diff in price_differences %}
+                <tr class="bg-gray-50">
+                    <td class="border px-4 py-2">{{ diff.products }}</td>
+                    <td class="border px-4 py-2">{{ diff.difference }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Chart Section -->
+        <div class="mt-8 text-center">
+            <h3 class="text-2xl font-semibold mb-4">Price Comparison Chart</h3>
+            <img src="{{ chart_url }}" alt="Price Comparison Chart" class="mx-auto border border-gray-200 rounded-lg">
+        </div>
+
+        <!-- Back to Comparison Button -->
+        <div class="mt-8 text-center">
+            <a href="{% url 'comparison' %}" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition">
+                Back to Comparison
+            </a>
+        </div>
+    </div>
+</body>
+</html>
