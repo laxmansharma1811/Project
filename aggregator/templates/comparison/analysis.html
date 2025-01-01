@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Analysis{% endblock %}
+
+
+{% block content %}
+<body class="bg-gray-50 font-sans">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <h2 class="text-4xl font-bold mb-8 text-center text-primary-800">Analysis</h2>
+
+        <!-- Price Differences Table -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+            <div class="p-6">
+                <h3 class="text-2xl font-semibold mb-4 text-primary-700">Price Differences</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full table-auto">
+                        <thead>
+                            <tr class="bg-primary-100">
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-primary-800">Comparison</th>
+                                <th class="px-4 py-3 text-left text-sm font-semibold text-primary-800">Price Difference (Rs.)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for diff in price_differences %}
+                            <tr class="border-b border-gray-200 hover:bg-gray-50 transition">
+                                <td class="px-4 py-3 text-sm text-gray-700">{{ diff.products }}</td>
+                                <td class="px-4 py-3 text-sm font-semibold text-primary-600">{{ diff.difference }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-8">
+            <div class="p-6">
+                <h3 class="text-2xl font-semibold mb-4 text-primary-700">Price Comparison Chart</h3>
+                <img src="{{ chart_url }}" alt="Price Comparison Chart" class="w-full h-auto rounded-lg border border-gray-200">
+            </div>
+        </div>
+
+        <!-- Back to Comparison Button -->
+        <div class="text-center">
+            <a href="{% url 'comparison' %}" class="inline-block bg-primary-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-primary-700 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg">
+                Back to Comparison
+            </a>
+        </div>
+    </div>
+    {% endblock %}
+
+

@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Hukut Products{% endblock %}
+{% block content %}
+
+<head>
+    <!-- Include jQuery from a CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    
+
+<div class="min-h-screen bg-gray-50">
+    <!-- Search Bar -->
+    <div class="bg-white shadow-md py-6 px-4 md:px-10 flex flex-col md:flex-row items-center justify-center gap-4">
+        <form id="searchForm" method="POST" class="w-full md:w-2/3 flex flex-col md:flex-row items-center gap-4">
+            {% csrf_token %}
+            <input
+                type="text"
+                name="query"
+                placeholder="Search for products..."
+                required
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button
+                type="submit"
+                class="px-6 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition"
+            >
+                Search
+            </button>
+        </form>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="loading" class="hidden flex flex-col items-center py-6">
+        <p>Searching for products...</p>
+    </div>
+
+    <!-- Results -->
+    <div id="results" class="container mx-auto py-6 grid gap-6 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"></div>
+</div>
+</body>
+
+<script>
+    const form = document.getElementById('searchForm');
+    const loading = document.getElementById('loading');
+    const resultsDiv = document.getElementById('results');
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        resultsDiv.innerHTML = '';
+        loading.classList.remove('hidden');
+
+        const formData = new FormData(form);
+        const response = await fetch(form.action, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': formData.get('csrfmiddlewaretoken') },
+            body: formData,
+        });
+        const data = await response.json();
+        loading.classList.add('hidden');
+
+        if (data.products && data.products.length > 0) {
+            data.products.forEach(product => {
+                const productCard = `
+                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                        <img
+                            src="${product['Image URL']}"
+                            alt="${product['Product Name']}"
+                            class="w-full h-48 object-cover"
+                        />
+                        <div class="p-4">
+                            <h3 class="text-lg font-semibold text-gray-800 truncate">${product['Product Name']}</h3>
+                            <p class="text-gray-600 mt-2"><strong>Price:</strong> ${product['Product Price']}</p>
+                            ${product['Rating'] ? `<p class="text-gray-600 mt-2"><strong>Rating:</strong> ${product['Rating']}</p>` : ''}
+                            ${product['Number of Reviews'] ? `<p class="text-gray-600 mt-2"><strong>Reviews:</strong> ${product['Number of Reviews']}</p>` : ''}
+                            ${product['Specifications'] ? `<p class="text-gray-600 mt-2"><strong>Specifications:</strong> ${product['Specifications']}</p>` : ''}
+                            <a
+                                href="${product['Product Link']}"
+                                target="_blank"
+                                class="text-blue-500 hover:text-blue-600 mt-2 block"
+                            >
+                                View Product
+                            </a>
+
+                             <button
+                            onclick='saveToCSV(${JSON.stringify(product).replace(/"/g, "&quot;")})'
+                            class="mt-4 w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
+                        >
+                            Save to CSV
+                        </button>
+
+                        </div>
+                    </div>
+                `;
+                resultsDiv.insertAdjacentHTML('beforeend', productCard);
+            });
+        } else {
+            resultsDiv.innerHTML = '<p class="text-center text-gray-500">No products found.</p>';
+        }
+    });
+
+
+
+    function saveToCSV(product) {
+    // Ensure product data is properly structured for backend
+    const productData = {
+        'product_link': product['Product Link'],
+        'image_url': product['Image URL'],
+        'product_name': product['Product Name'],
+        'product_price': product['Product Price'],
+        'rating': product['Rating'] || '',  // Handle missing values
+        'number_of_ratings': product['Number of Ratings'] || '',  // Handle missing values
+        'specifications': product['Specifications'] || ''  // Handle missing values
+    };
+
+    $.ajax({
+        url: '{% url "save_to_csv" %}',  // URL to the Django view that handles CSV saving
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'  // Pass CSRF token
+        },
+        data: JSON.stringify(productData),  // Send data as JSON
+        contentType: 'application/json',
+        success: function (response) {
+            console.log('Success:', response);  // Debugging output
+            alert('Product saved successfully!');
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', error);  // Debugging output
+            alert('Error saving product: ' + error);
+        },
+    });
+}
+
+
+</script>
+{% endblock %}

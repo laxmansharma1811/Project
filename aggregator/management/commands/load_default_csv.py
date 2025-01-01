@@ -16,7 +16,7 @@ class Command(BaseCommand):
                         image_url=row['Image URL'],
                         product_name=row['Product Name'],
                         product_price=row['Product Price'],
-                        rating=float(row['Rating']),
+                        rating=row['Rating'],
                         number_of_ratings=row['Number of Ratings'],
                         specifications=row['Specifications'],
                     )

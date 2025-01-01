@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Product Comparison{% endblock %}
+        
+{% block content %}
+        <div class="container mx-auto px-4 py-8">
+            <h2 class="text-3xl font-bold mb-8 text-center text-primary-600">Product Comparison</h2>
+        
+            <!-- Product Comparison Table -->
+            <div class="overflow-x-auto shadow-lg rounded-lg bg-white">
+                <table class="min-w-full table-auto">
+                    <thead>
+                        <tr class="bg-primary-100 text-left">
+                            <th class="border px-4 py-2">Feature</th>
+                            {% for product in products %}
+                            <th class="border px-4 py-2">
+                                <div class="relative">
+                                    <!-- Remove Product Button -->
+                                    <form method="POST" class="absolute top-2 right-2">
+                                        {% csrf_token %}
+                                        <button type="submit" name="remove_product" value="{{ product.id }}"
+                                                class="text-red-500 text-lg font-semibold hover:text-red-700 transition-colors duration-300">&times;</button>
+                                    </form>
+                                    <!-- Product Image and Link -->
+                                    <img src="{{ product.image_url }}" alt="{{ product.product_name }}"
+                                         class="w-32 h-32 object-contain mx-auto mb-2 border border-gray-200 p-2 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                                    <a href="{{ product.product_link }}" target="_blank" class="text-primary-600 hover:text-primary-800 hover:underline text-center block transition-colors duration-300">
+                                        <p class="font-semibold">{{ product.product_name }}</p>
+                                    </a>
+                                </div>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Price Row -->
+                        <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-300">
+                            <td class="border px-4 py-2 font-semibold">Price</td>
+                            {% for product in products %}
+                            <td class="border px-4 py-2 text-center font-bold text-primary-600">{{ product.product_price }}</td>
+                            {% endfor %}
+                        </tr>
+                        <!-- Rating Row -->
+                        <tr class="bg-white hover:bg-gray-100 transition-colors duration-300">
+                            <td class="border px-4 py-2 font-semibold">Rating</td>
+                            {% for product in products %}
+                            <td class="border px-4 py-2 text-center">
+                                <span class="text-yellow-500">★</span> {{ product.rating }}
+                                <br>
+                                <span class="text-sm text-gray-500">({{ product.number_of_ratings }})</span>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        <!-- Specifications Row -->
+                        <tr class="bg-gray-50 hover:bg-gray-100 transition-colors duration-300">
+                            <td class="border px-4 py-2 font-semibold">Specifications</td>
+                            {% for product in products %}
+                            <td class="border px-4 py-2 text-sm">
+                                <div class="whitespace-pre-line text-gray-700">
+                                    {{ product.specifications }}
+                                </div>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        
+            <!-- Comparison Actions -->
+            <div class="mt-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                <a href="{% url 'home' %}" class="w-full sm:w-auto bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600 transition-colors duration-300 text-center">
+                    Back to Products
+                </a>
+                <form method="POST" class="w-full sm:w-auto">
+                    {% csrf_token %}
+                    <button type="submit" name="clear_comparison"
+                            class="w-full bg-red-500 text-white px-6 py-2 rounded-lg hover:bg-red-600 transition-colors duration-300">
+                        Clear Comparison
+                    </button>
+                </form>
+                <!-- New Analysis Button -->
+                <form method="GET" action="{% url 'analysis' %}" class="w-full sm:w-auto">
+                    <button type="submit" 
+                            class="w-full bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors duration-300">
+                        Analysis
+                    </button>
+                </form>
+            </div>
+        </div>
+{% endblock %}
+  

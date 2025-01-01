@@ -1,22 +1,28 @@
+import json
+import subprocess
+import sys
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
-
-from product_aggregator.aggregator.scraper.utils import scrape_daraz_products
 from .models import *
 from django.db.models import Q
 import matplotlib.pyplot as plt
 import io
-import urllib, base64
+import base64
+from django.views.generic import TemplateView
+from .scraper.utils import DarazScraper
+import json
 from django.http import JsonResponse
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import time
+from django.views.decorators.csrf import csrf_exempt
+import csv
+from pathlib import Path
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from .scraper.hukut import scrape_products
+
+
 
 # Create your views here.
 
@@ -66,8 +72,19 @@ def home(request):
     elif sort_by == 'rating':
         products = sorted(products, key=lambda x: x.rating, reverse=True)
     
+    paginator = Paginator(products, 12)  # Show 12 products per page
+    page = request.GET.get('page')
+    
+    try:
+        page_obj = paginator.page(page)
+    except PageNotAnInteger:
+        page_obj = paginator.page(1)
+    except EmptyPage:
+        page_obj = paginator.page(paginator.num_pages)
+
     # Context for the template
     context = {
+        'page_obj': page_obj,
         'products': products,
         'search_query': search_query,
         'sort_by': sort_by,
@@ -75,7 +92,7 @@ def home(request):
         'price_max': price_max
     }
     
-    return render(request, 'home.html', context)
+    return render(request, 'dashboard/home.html', context)
 
 
 
@@ -131,7 +148,7 @@ def comparison(request):
         'price_differences': price_differences,
     }
     
-    return render(request, 'comparison.html', context)
+    return render(request, 'comparison/comparison.html', context)
 
 
 
@@ -174,18 +191,83 @@ def analysis(request):
         'chart_url': f"data:image/png;base64,{chart_url}",
     }
 
-    return render(request, 'analysis.html', context)
+    return render(request, 'comparison/analysis.html', context)
 
 
-def scrape_view(request):
-    query = request.GET.get('query', 'laptops')  # Default to 'laptops' if no query is provided
-    required_spec_keys = [
-        'Brand', 'SKU', 'Wireless Connectivity', 'Display Size', 'Operating System', 'CPU Cores',
-        'Ram Memory', 'Model No.', 'Touch Pad', 'Storage Capacity', 'Processor', 'Storage Type', 'Touch',
-        'Generation', 'What’s in the box'
-    ]
-    data = scrape_daraz_products(query, required_spec_keys)
-    return JsonResponse({'data': data})
+
+
+class ProductSearchView(TemplateView):
+    template_name = 'live/search.html'
+
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get('q', '')
+        if query and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            # Scrape products
+            scraper = DarazScraper()
+            products = scraper.search_products(query, limit=5)
+
+            # Save each product to the database
+            for product in products:
+                ScrapedProduct.objects.get_or_create(
+                    product_link=product['product_link'],
+                    defaults={
+                        'image_url': product['image_url'],
+                        'product_name': product['product_name'],
+                        'product_price': product['product_price'],
+                        'rating': product.get('rating'),
+                        'number_of_ratings': product.get('number_of_ratings'),
+                        'specifications': product.get('specifications'),
+                    }
+                )
+            return JsonResponse({'products': products})
+
+        return render(request, self.template_name)
+    
+
+def search_products(request):
+    if request.method == "POST":
+        query = request.POST.get('query')
+        results = scrape_products(query)
+        return JsonResponse({'products': results})
+    return render(request, "live/hukut_live.html")
+
+
+@login_required(login_url='login')    
+@csrf_exempt
+def save_to_csv(request):
+    if request.method == 'POST':
+        try:
+            product_data = json.loads(request.body)
+            csv_path = 'product_aggregator/data/scraped_products.csv'
+            
+            Path(csv_path).parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(csv_path, mode='a', newline='', encoding='utf-8') as file:
+                fieldnames = ['Product Link', 'Image URL', 'Product Name', 'Product Price', 
+                            'Rating', 'Number of Ratings', 'Specifications']
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                
+                csv_row = {
+                    'Product Link': product_data['product_link'],
+                    'Image URL': product_data['image_url'],
+                    'Product Name': product_data['product_name'],
+                    'Product Price': product_data['product_price'],
+                    'Rating': float(product_data['rating']),
+                    'Number of Ratings': product_data['number_of_ratings'],
+                    'Specifications': product_data['specifications']
+                }
+                writer.writerow(csv_row)
+
+            # Run the management command to load the CSV data
+            subprocess.run([sys.executable, 'manage.py', 'load_default_csv'], check=True)
+
+            return JsonResponse({'status': 'success', 'message': 'Product saved to CSV and data loaded into database'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+
 
 
 
@@ -212,7 +294,7 @@ def register(request):
         login(request, user) 
         return redirect('home')
 
-    return render(request, 'register.html')
+    return render(request, 'authentication/register.html')
 
 
 
@@ -229,7 +311,7 @@ def login_view(request):
             messages.error(request, "Invalid username or password!")
             return redirect('login')
 
-    return render(request, 'login.html')
+    return render(request, 'authentication/login.html')
 
 
 
