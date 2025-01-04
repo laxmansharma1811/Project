@@ -12,4 +12,7 @@ urlpatterns = [
     path('search/', ProductSearchView.as_view(), name='product_search'),
     path('save-to-csv/', save_to_csv, name='save_to_csv'),
     path('hukut/', search_products, name='search_products'),
+    path('save-hukut/', save_hukut_to_csv, name='save_hukut'),
+    path('profile/', profile_view, name='profile'),
+    path('profile/edit/', edit_profile, name='edit_profile'),
 ]

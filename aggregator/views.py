@@ -232,6 +232,43 @@ def search_products(request):
     return render(request, "live/hukut_live.html")
 
 
+
+@login_required(login_url='login')
+@csrf_exempt
+def save_hukut_to_csv(request):
+    if request.method == 'POST':
+        try:
+            product_data = json.loads(request.body)
+            csv_path = 'product_aggregator/data/scraped_products.csv'
+            
+            Path(csv_path).parent.mkdir(parents=True, exist_ok=True)
+            
+            with open(csv_path, mode='a', newline='', encoding='utf-8') as file:
+                fieldnames = ['Product Link', 'Image URL', 'Product Name', 'Product Price', 
+                              'Rating', 'Number of Ratings', 'Specifications']
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                
+                csv_row = {
+                    'Product Link': product_data['product_link'],
+                    'Image URL': product_data['image_url'],
+                    'Product Name': product_data['product_name'],
+                    'Product Price': product_data['product_price'],
+                    'Rating': float(product_data['rating']),
+                    'Number of Ratings': product_data['number_of_ratings'],
+                    'Specifications': product_data['specifications']
+                }
+                writer.writerow(csv_row)
+
+            # Run a management command or other processing (if needed)
+            subprocess.run([sys.executable, 'manage.py', 'load_default_csv'], check=True)
+
+            return JsonResponse({'status': 'success', 'message': 'Hukut product saved to CSV and data loaded into database'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
+
+
 @login_required(login_url='login')    
 @csrf_exempt
 def save_to_csv(request):
@@ -321,3 +358,34 @@ def logout_view(request):
     messages.success(request, "You have successfully logged out!")
     return redirect('login')
 
+
+
+
+@login_required
+def profile_view(request):
+    profile, created = Profile.objects.get_or_create(user=request.user)
+    return render(request, 'profile/profile.html', {'profile': profile})
+
+
+
+@login_required
+def edit_profile(request):
+    profile = request.user.profile
+
+    if request.method == 'POST':
+        full_name = request.POST.get('full_name')
+        email = request.POST.get('email')
+        address = request.POST.get('address')
+        phone_number = request.POST.get('phone_number')
+
+        # Update the profile with the new data
+        profile.full_name = full_name
+        profile.email = email
+        profile.address = address
+        profile.phone_number = phone_number
+        profile.save()
+
+        # Redirect to the profile page after saving
+        return redirect('profile')
+
+    return render(request, 'profile/edit_profile.html', {'profile': profile})

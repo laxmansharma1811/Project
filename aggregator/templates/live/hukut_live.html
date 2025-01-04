@@ -113,23 +113,20 @@
         'specifications': product['Specifications'] || ''  // Handle missing values
     };
 
-    $.ajax({
-        url: '{% url "save_to_csv" %}',  // URL to the Django view that handles CSV saving
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': '{{ csrf_token }}'  // Pass CSRF token
-        },
-        data: JSON.stringify(productData),  // Send data as JSON
-        contentType: 'application/json',
-        success: function (response) {
-            console.log('Success:', response);  // Debugging output
-            alert('Product saved successfully!');
-        },
-        error: function (xhr, status, error) {
-            console.error('Error:', error);  // Debugging output
-            alert('Error saving product: ' + error);
-        },
-    });
+    function saveToCSV(product) {
+        $.ajax({
+            url: '{% url "save_to_csv" %}',
+            method: 'POST',
+            data: JSON.stringify(product),
+            contentType: 'application/json',
+            success: function (response) {
+                alert('Product saved successfully!');
+            },
+            error: function (xhr, status, error) {
+                alert('Error saving product: ' + error);
+            },
+        });
+    }
 }
 
 
