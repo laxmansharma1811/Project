@@ -56,8 +56,12 @@ class DarazScraper:
                 if key in self.required_spec_keys:
                     specifications[key] = value
             
+            
             # Convert specifications dictionary to string
-            product_data['specifications'] = "; ".join(f"{k}: {v}" for k, v in specifications.items())
+            if specifications:
+                product_data['specifications'] = "; ".join(f"{k}: {v}" for k, v in specifications.items())
+            else:
+                product_data['specifications'] = "No specifications found"
 
         except NoSuchElementException as e:
             print(f"Error scraping product page: {str(e)}")

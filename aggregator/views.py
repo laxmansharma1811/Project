@@ -96,6 +96,7 @@ def home(request):
 
 
 
+@login_required(login_url='login')
 def select_product(request, product_id):
     selected_products = request.session.get('selected_products', [])
     
@@ -114,6 +115,7 @@ def select_product(request, product_id):
 
 
 
+@login_required(login_url='login')
 def comparison(request):
     selected_product_ids = request.session.get('selected_products', [])
     products = Product.objects.filter(id__in=selected_product_ids)
@@ -224,6 +226,7 @@ class ProductSearchView(TemplateView):
         return render(request, self.template_name)
     
 
+@login_required(login_url='login')
 def search_products(request):
     if request.method == "POST":
         query = request.POST.get('query')
@@ -361,14 +364,14 @@ def logout_view(request):
 
 
 
-@login_required
+@login_required(login_url='login')
 def profile_view(request):
     profile, created = Profile.objects.get_or_create(user=request.user)
     return render(request, 'profile/profile.html', {'profile': profile})
 
 
 
-@login_required
+@login_required(login_url='login')
 def edit_profile(request):
     profile = request.user.profile
 

@@ -55,14 +55,14 @@ def scrape_products(query, max_products=5):
                     product_data['Rating'] = rating_match.group(1)
                     product_data['Number of Ratings'] = rating_match.group(2)
             except NoSuchElementException:
-                product_data['Rating'] = None
-                product_data['Number of Ratings'] = None
+                product_data['Rating'] = '0'
+                product_data['Number of Ratings'] = 'No Ratings'
 
             try:
                 spec_section = driver.find_element(By.XPATH, '/html/body/div[3]/section/section[2]/div/div/div/div')
                 product_data['Specifications'] = spec_section.text.replace('\n', ' | ')
             except NoSuchElementException:
-                product_data['Specifications'] = None
+                product_data['Specifications'] = 'No specifications available'
 
             scraped_products.append(product_data)
 
